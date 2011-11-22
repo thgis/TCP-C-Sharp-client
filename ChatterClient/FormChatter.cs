@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using System.Net.Sockets;
 using System.Net;
+using System.Web.Script.Serialization;
+using CommonClientServerLib.Messages;
 
 namespace ChatterClient
 {
@@ -221,8 +223,11 @@ namespace ChatterClient
             String IPStr = "";
             foreach (IPAddress ipaddress in iphostentry.AddressList)
             {
-                IPStr = ipaddress.ToString();
-                return IPStr;
+                if (ipaddress.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    IPStr = ipaddress.ToString();
+                    return IPStr;
+                }
             }
             return IPStr;
         }
@@ -246,6 +251,8 @@ namespace ChatterClient
 
         private void SendMessage(string msg)
         {
+            string[] test = msg.Split(':');
+            List<byte> data = new List<byte>();
             if (m_clientSocket == null)
             {
                 MessageBox.Show("Sending is not possible when not connected!", "Sending", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -262,11 +269,23 @@ namespace ChatterClient
 
             try
             {
+                if(test[0] == "User")
+                {
+                    JavaScriptSerializer JSR = new JavaScriptSerializer();
+
+                    JsonUserLogOn JsonMsg = new JsonUserLogOn();
+                    JsonMsg.UserName = test[1];
+
+                    msg = JSR.Serialize(JsonMsg);
+                }
                 //Use the following code to send bytes
-                byte[] byData = System.Text.Encoding.UTF8.GetBytes(msg);
+                data.Add((byte)0x2);
+                data.AddRange(System.Text.Encoding.UTF8.GetBytes(msg));
+                data.Add((byte)0x10);
+                data.Add((byte)0x3);
                 if (m_clientSocket != null)
                 {
-                    m_clientSocket.Send(byData);
+                    m_clientSocket.Send(data.ToArray());
                 }
 
 
