@@ -273,8 +273,10 @@ namespace ChatterClient
                 {
                     JavaScriptSerializer JSR = new JavaScriptSerializer();
 
-                    JsonUserLogOn JsonMsg = new JsonUserLogOn();
+                    UserLogOn JsonMsg = new UserLogOn();
                     JsonMsg.UserName = test[1];
+                    JsonMsg.ErrorMsg = "None";
+                    
 
                     msg = JSR.Serialize(JsonMsg);
                 }
